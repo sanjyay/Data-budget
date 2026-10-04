@@ -8,7 +8,7 @@ Choose a connection, set a budget, and start tracking. Data Budget counts this
 laptop's uploads and downloads. Omarchy's existing network menu continues to
 manage connections.
 
-<img width="480" height="767" alt="image" src="https://github.com/user-attachments/assets/1af1547f-f387-4571-bc3c-9b75ba0d33f8" />
+<img width="481" height="769" alt="image" src="https://github.com/user-attachments/assets/7eccec93-a6d4-4352-a107-dc6c8527857b" />
 
 
 ## Features
