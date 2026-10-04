@@ -169,13 +169,114 @@ Panel {
         }
     }
 
+    // Shared visual treatments keep focus, hover, and disabled states consistent.
+    component Caption: Controls.Label {
+        color: Qt.alpha(Color.foreground, 0.65)
+        font.family: Style.font.family
+        font.pixelSize: Style.font.caption
+        textFormat: Text.PlainText
+    }
+    component Field: Controls.TextField {
+        id: field
+        implicitHeight: Style.space(38)
+        color: Color.foreground
+        selectionColor: Color.accent
+        selectedTextColor: Color.background
+        placeholderTextColor: Qt.alpha(Color.foreground, 0.4)
+        font.family: Style.font.family
+        font.pixelSize: Style.font.body
+        leftPadding: Style.space(12)
+        rightPadding: Style.space(12)
+        background: Rectangle {
+            radius: Style.space(7)
+            color: Qt.alpha(Color.foreground, 0.04)
+            border.width: 1
+            border.color: field.activeFocus ? Color.accent : Qt.alpha(Color.foreground, 0.14)
+        }
+    }
+    component Select: Controls.ComboBox {
+        id: select
+        implicitHeight: Style.space(38)
+        font.family: Style.font.family
+        font.pixelSize: Style.font.body
+        palette.window: Color.background
+        palette.base: Color.background
+        palette.text: Color.foreground
+        palette.buttonText: Color.foreground
+        palette.highlight: Color.accent
+        palette.highlightedText: Color.background
+        opacity: enabled ? 1 : 0.45
+        background: Rectangle {
+            radius: Style.space(7)
+            color: Qt.alpha(Color.foreground, select.hovered ? 0.08 : 0.04)
+            border.width: 1
+            border.color: select.activeFocus ? Color.accent : Qt.alpha(Color.foreground, 0.14)
+        }
+        contentItem: Text {
+            text: select.displayText
+            font: select.font
+            color: Color.foreground
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+            leftPadding: Style.space(12)
+            rightPadding: Style.space(32)
+        }
+        indicator: Text {
+            x: parent.width - width - Style.space(12)
+            anchors.verticalCenter: parent.verticalCenter
+            text: "⌄"
+            color: Qt.alpha(Color.foreground, 0.65)
+            font.pixelSize: Style.space(16)
+        }
+        delegate: Controls.ItemDelegate {
+            required property string modelData
+            required property int index
+            width: select.width
+            highlighted: select.highlightedIndex === index
+            contentItem: Text {
+                text: modelData
+                font: select.font
+                color: highlighted ? Color.background : Color.foreground
+                textFormat: Text.PlainText
+                elide: Text.ElideRight
+            }
+            background: Rectangle { color: parent.highlighted ? Color.accent : Color.background }
+        }
+    }
+    component Action: Controls.Button {
+        id: action
+        property bool primary: false
+        property bool destructive: false
+        implicitHeight: Style.space(38)
+        horizontalPadding: Style.space(14)
+        opacity: enabled ? 1 : 0.35
+        contentItem: Text {
+            text: action.text
+            color: action.primary ? Color.background : action.destructive ? Color.urgent : Color.foreground
+            font.family: Style.font.family
+            font.pixelSize: Style.font.body
+            font.weight: action.primary ? Font.DemiBold : Font.Normal
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            textFormat: Text.PlainText
+        }
+        background: Rectangle {
+            radius: Style.space(7)
+            color: action.primary ? Qt.alpha(Color.accent, action.down ? 0.75 : action.hovered ? 0.9 : 1)
+                : Qt.alpha(Color.foreground, action.down ? 0.12 : action.hovered ? 0.08 : 0.03)
+            border.width: 1
+            border.color: action.activeFocus ? Color.accent : action.primary ? "transparent" : Qt.alpha(Color.foreground, 0.12)
+        }
+    }
+
     KeyboardPanel {
         id: popup
         anchorItem: button
         owner: root
         bar: root.bar
         open: root.opened
-        contentWidth: popup.fittedContentWidth(Style.space(390))
+        contentWidth: popup.fittedContentWidth(Style.space(360))
         contentHeight: popup.fittedContentHeight(content.implicitHeight)
         focusTarget: content
 
@@ -189,67 +290,57 @@ Panel {
                 id: content
                 objectName: "budgetContent"
                 width: parent.width
-                spacing: Style.space(10)
+                spacing: Style.space(16)
                 focus: true
                 Keys.onEscapePressed: root.close()
 
-                Controls.Label {
-                    text: "Data Budget"
-                    color: Color.foreground
-                    font.pixelSize: Style.font.title
-                    font.bold: true
-                    textFormat: Text.PlainText
+                RowLayout {
+                    Layout.fillWidth: true
+                    Controls.Label {
+                        text: "Data Budget"
+                        color: Color.foreground
+                        font.family: Style.font.family
+                        font.pixelSize: Style.space(19)
+                        font.weight: Font.DemiBold
+                        Layout.fillWidth: true
+                    }
+                    Rectangle {
+                        implicitWidth: status.implicitWidth + Style.space(18)
+                        implicitHeight: Style.space(24)
+                        radius: height / 2
+                        color: Qt.alpha(Color.accent, 0.12)
+                        Caption {
+                            id: status
+                            anchors.centerIn: parent
+                            color: Color.accent
+                            text: !root.healthy ? "Unavailable" : !root.selected || !root.selected.tracked ? "Not tracking" : !root.selected.active ? "Offline" : "Tracking"
+                        }
+                    }
                 }
                 Controls.Label {
                     Layout.fillWidth: true
                     visible: !root.healthy
-                    text: root.tracker ? root.tracker.error : "Tracker service unavailable. Enable Data Budget and retry."
-                    color: Color.foreground
+                    text: root.tracker ? root.tracker.error : "Tracker service unavailable."
+                    color: Color.urgent
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
                 }
-                Controls.ComboBox {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
+                Select {
                     id: connections
                     Layout.fillWidth: true
-                    model: root.rows.map(function(row) { return row.name + (row.active ? " · connected" : " · offline") })
+                    model: root.rows.map(function(row) { return row.name + (row.active ? "" : " · offline") })
                     currentIndex: {
                         for (let i = 0; i < root.rows.length; i++) if (root.rows[i].uuid === root.selectedUuid) return i
                         return -1
                     }
                     enabled: root.healthy && root.rows.length > 0
                     onActivated: function(index) { root.selectRow(index) }
-                    contentItem: Text {
-                        text: connections.displayText
-                        textFormat: Text.PlainText
-                        color: Color.foreground
-                        verticalAlignment: Text.AlignVCenter
-                        elide: Text.ElideRight
-                        leftPadding: 10
-                        rightPadding: 28
-                    }
-                    delegate: Controls.ItemDelegate {
-                        required property string modelData
-                        width: connections.width
-                        contentItem: Text {
-                            text: parent.modelData
-                            textFormat: Text.PlainText
-                            color: Color.foreground
-                            elide: Text.ElideRight
-                        }
-                    }
                     Accessible.name: "Connection to track"
                 }
                 Controls.Label {
                     Layout.fillWidth: true
                     visible: !root.rows.length && root.healthy
-                    text: "Connect to Wi-Fi or Ethernet using Omarchy’s existing network menu, then return here."
+                    text: "Connect to Wi-Fi or Ethernet to add a budget."
                     color: Color.foreground
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
@@ -257,122 +348,126 @@ Panel {
                 ColumnLayout {
                     visible: root.selected !== null
                     Layout.fillWidth: true
-                    spacing: Style.space(8)
-                    Controls.Label {
+                    spacing: Style.space(16)
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        text: root.selected ? (root.selected.tracked ? "Tracking enabled" : "Not tracking") + " · " + root.selected.type + (root.selected.metered ? " · metered hint" : "") : ""
-                        color: Color.foreground
-                        wrapMode: Text.WordWrap
-                        textFormat: Text.PlainText
-                    }
-                    Controls.Label {
-                        Layout.fillWidth: true
-                        text: root.selected ? root.bytes(root.selected.rx + root.selected.tx) + " of " + root.bytes(root.selected.budget) : ""
-                        color: Color.foreground
-                        font.pixelSize: Style.font.title
-                        textFormat: Text.PlainText
-                    }
-                    Controls.ProgressBar {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
-                        Layout.fillWidth: true
-                        from: 0
-                        to: 1
-                        value: root.selected ? Math.min(1, (root.selected.rx + root.selected.tx) / root.selected.budget) : 0
-                        Accessible.name: "Budget used"
-                    }
-                    Controls.Label {
-                        Layout.fillWidth: true
-                        text: root.selected ? "Down " + root.bytes(root.selected.rx) + " · Up " + root.bytes(root.selected.tx) + "\nRemaining " + root.bytes(Math.max(0, root.selected.budget - root.selected.rx - root.selected.tx)) : ""
-                        color: Color.foreground
-                        wrapMode: Text.WordWrap
-                        textFormat: Text.PlainText
-                    }
-                    Controls.Label { text: "Budget (MB, 1 GB = 1000 MB)"; color: Color.foreground }
-                    Controls.TextField {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
-                        id: budget
-                        Layout.fillWidth: true
-                        placeholderText: "1000"
-                        inputMethodHints: Qt.ImhFormattedNumbersOnly
-                        maximumLength: 16
-                        Accessible.name: "Budget in megabytes"
-                    }
-                    Controls.Label { text: "Reset period"; color: Color.foreground }
-                    Controls.ComboBox {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
-                        id: period
-                        Layout.fillWidth: true
-                        model: ["Each connection session", "Daily at local midnight", "Monthly on the 1st"]
-                        Accessible.name: "Budget reset period"
-                    }
-                    Controls.Label { text: "Warn at percentages (comma-separated)"; color: Color.foreground }
-                    Controls.TextField {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
-                        id: thresholds
-                        Layout.fillWidth: true
-                        placeholderText: "50, 80, 100"
-                        maximumLength: 48
-                        Accessible.name: "Warning percentages"
+                        spacing: Style.space(6)
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Caption { text: "DATA USED"; font.letterSpacing: 1; Layout.fillWidth: true }
+                            Caption { text: root.selected ? root.selected.type + (root.selected.metered ? " · metered" : "") : "" }
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Controls.Label {
+                                text: root.selected ? root.bytes(root.selected.rx + root.selected.tx) : ""
+                                color: Color.foreground
+                                font.family: Style.font.family
+                                font.pixelSize: Style.space(32)
+                                font.weight: Font.DemiBold
+                                Layout.fillWidth: true
+                            }
+                            Caption {
+                                text: root.selected ? Math.floor(100 * (root.selected.rx + root.selected.tx) / root.selected.budget) + "%" : ""
+                                color: root.selected && root.selected.rx + root.selected.tx >= root.selected.budget ? Color.urgent : Color.accent
+                                font.pixelSize: Style.space(18)
+                            }
+                        }
+                        Caption { text: root.selected ? "of " + root.bytes(root.selected.budget) + " budget" : "" }
+                        Controls.ProgressBar {
+                            id: progress
+                            Layout.fillWidth: true
+                            Layout.topMargin: Style.space(6)
+                            implicitHeight: Style.space(6)
+                            value: root.selected ? Math.min(1, (root.selected.rx + root.selected.tx) / root.selected.budget) : 0
+                            background: Rectangle { radius: height / 2; color: Qt.alpha(Color.foreground, 0.09) }
+                            contentItem: Item {
+                                Rectangle {
+                                    width: parent.width * progress.position
+                                    height: parent.height
+                                    radius: height / 2
+                                    color: progress.value >= 1 ? Color.urgent : Color.accent
+                                    Behavior on width { NumberAnimation { duration: 300 } }
+                                }
+                            }
+                            Accessible.name: "Budget used"
+                        }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Controls.Button {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
+                        Repeater {
+                            model: ["Downloaded", "Uploaded", "Remaining"]
+                            ColumnLayout {
+                                required property string modelData
+                                required property int index
+                                Layout.preferredWidth: content.width / 3
+                                Layout.fillWidth: true
+                                spacing: Style.space(4)
+                                Caption { text: modelData }
+                                Controls.Label {
+                                    text: root.selected ? root.bytes(index === 0 ? root.selected.rx : index === 1 ? root.selected.tx : Math.max(0, root.selected.budget - root.selected.rx - root.selected.tx)) : ""
+                                    color: Color.foreground
+                                    font.family: Style.font.family
+                                    font.pixelSize: Style.font.body
+                                    font.weight: Font.Medium
+                                }
+                            }
+                        }
+                    }
+                    Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Qt.alpha(Color.foreground, 0.1) }
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 2
+                        columnSpacing: Style.space(12)
+                        rowSpacing: Style.space(8)
+                        Caption { text: "Budget · MB" }
+                        Caption { text: "Reset period" }
+                        Field {
+                            id: budget
+                            Layout.preferredWidth: Style.space(100)
+                            Layout.fillWidth: true
+                            placeholderText: "1000"
+                            inputMethodHints: Qt.ImhFormattedNumbersOnly
+                            maximumLength: 16
+                            Accessible.name: "Budget in megabytes, 1000 MB equals 1 GB"
+                        }
+                        Select {
+                            id: period
+                            Layout.preferredWidth: Style.space(190)
+                            Layout.fillWidth: true
+                            model: ["Each session", "Daily", "Monthly"]
+                            Accessible.name: "Budget reset period"
+                        }
+                        Caption { text: "Alert thresholds · %"; Layout.columnSpan: 2 }
+                        Field {
+                            id: thresholds
+                            Layout.fillWidth: true
+                            Layout.columnSpan: 2
+                            placeholderText: "50, 80, 100"
+                            maximumLength: 48
+                            Accessible.name: "Warning percentages, comma-separated"
+                        }
+                    }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Style.space(10)
+                        Action {
+                            Layout.fillWidth: true
+                            primary: true
                             text: root.selected && root.selected.tracked ? "Save budget" : "Start tracking"
                             enabled: root.healthy
                             onClicked: root.save()
                         }
-                        Controls.Button {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
+                        Action {
+                            Layout.fillWidth: true
                             text: "Stop tracking"
                             enabled: root.healthy && root.selected && root.selected.tracked
                             onClicked: root.tracker.send("stop", root.selectedUuid, 0, "", [])
                         }
                     }
-                    Controls.Button {
-                        palette.window: Color.background
-                        palette.base: Color.background
-                        palette.button: Color.background
-                        palette.buttonText: Color.foreground
-                        palette.text: Color.foreground
-                        palette.highlight: Color.accent
-                        palette.highlightedText: Color.background
+                    Action {
+                        Layout.fillWidth: true
+                        destructive: root.confirmForget
                         text: root.confirmForget ? "Confirm delete profile + totals" : "Forget saved profile"
                         enabled: root.healthy
                         onClicked: {
@@ -386,7 +481,7 @@ Panel {
                 Controls.Label {
                     Layout.fillWidth: true
                     text: root.tracker ? root.tracker.notice : ""
-                    visible: text !== ""
+                    visible: text !== "" && text !== "Saved."
                     color: Color.foreground
                     wrapMode: Text.WordWrap
                     textFormat: Text.PlainText
