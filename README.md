@@ -1,11 +1,15 @@
-# Data Budget
+# Data Budget [![Built for Omarchy: Plugin](https://raw.githubusercontent.com/tcballard/omarchy-badges/75975e5b5bf75e7ede3764bcd2950046f7abfe2c/badges/v1/omarchy-plugin.svg)](https://github.com/tcballard/omarchy-badges)
+
 
 Track Wi-Fi, hotspot, and physical Ethernet data usage with a filling jar icon
-and configurable budget alerts in Omarchy Quattro.
+and configurable budget alerts
 
 Choose a connection, set a budget, and start tracking. Data Budget counts this
 laptop's uploads and downloads. Omarchy's existing network menu continues to
 manage connections.
+
+<img width="480" height="767" alt="image" src="https://github.com/user-attachments/assets/1af1547f-f387-4571-bc3c-9b75ba0d33f8" />
+
 
 ## Features
 
