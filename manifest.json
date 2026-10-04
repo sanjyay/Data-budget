@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "sanjyay.hotspot-budget",
+  "name": "Data Budget",
+  "version": "0.1.0",
+  "author": "sanjyay",
+  "license": "MIT",
+  "description": "Track Wi-Fi and hotspot data usage with budget alerts.",
+  "kinds": ["bar-widget", "service"],
+  "entryPoints": {"barWidget": "Main.qml", "service": "Service.qml"},
+  "barWidget": {
+    "displayName": "Data Budget",
+    "description": "This laptop's usage on limited connections",
+    "category": "Network",
+    "allowMultiple": false,
+    "defaultSection": "right"
+  }
+}
