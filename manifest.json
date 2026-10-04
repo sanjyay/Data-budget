@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "sanjyay.hotspot-budget",
+  "id": "data-budget",
   "name": "Data Budget",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "sanjyay",
   "license": "MIT",
   "description": "Track Wi-Fi and hotspot data usage with budget alerts.",
