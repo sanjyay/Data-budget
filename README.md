@@ -50,47 +50,28 @@ mixed-DPI layouts, and monitor hotplug have not been fully validated.
 
 ## Installation
 
-This project has not yet been published to the marketplace. The instructions
-below install an already downloaded or checked-out copy locally; no public
-repository URL is assumed.
-
-From the repository root, review the source, then copy the runtime files into a
-**new** user plugin directory:
+Install and enable through Omarchy:
 
 ```sh
-(
-  set -e
-  plugin_dir="$HOME/.config/omarchy/plugins/sanjyay.hotspot-budget"
-  mkdir -p "$HOME/.config/omarchy/plugins"
-  mkdir "$plugin_dir"
-  cp manifest.json Main.qml Service.qml TrackerBridge.qml LICENSE "$plugin_dir/"
-  cp -R scripts "$plugin_dir/"
-  omarchy-shell shell rescanPlugins
-)
+omarchy plugin install https://github.com/sanjyay/Data-budget.git --enable
 ```
 
-The `mkdir` deliberately fails if that plugin directory already exists, avoiding
-an accidental overwrite. If copying fails partway through, inspect the partial
-directory before retrying.
+The plugin appears as **Data Budget**. Its plugin ID is `sanjyay.hotspot-budget`.
 
-After discovery completes, enable the plugin:
+## Removal
 
 ```sh
-omarchy plugin enable sanjyay.hotspot-budget --section right
+omarchy plugin remove sanjyay.hotspot-budget
 ```
 
-If enabling reports an unknown plugin immediately after rescanning, wait for
-discovery to finish and retry the enable command. If the bar still shows an old
-version after an intentional update, use `omarchy restart shell`.
+To disable it without uninstalling:
 
-The display name is **Data Budget**. Its stable plugin ID remains
-`sanjyay.hotspot-budget`, and its state directory remains `hotspot-budget` so
-renaming the display does not discard existing installations or usage.
+```sh
+omarchy plugin disable sanjyay.hotspot-budget
+```
 
-For a manual update, back up the installed plugin directory, disable the plugin,
-and replace its runtime files with a reviewed version. Rescan and re-enable it.
-Keep the state directory intact to retain budgets and totals. Installation and
-updates do not modify built-in Wi-Fi files or NetworkManager profiles.
+Saved budgets and usage are retained. Use **Forget saved profile** in the panel
+before removal if you want to erase a profile's settings and totals.
 
 ## Usage
 
@@ -158,18 +139,6 @@ render as plain text and are omitted from notifications.
 Like other community shell plugins, this code runs unsandboxed with your user's
 permissions. These safeguards are not a security certification.
 
-## Disable and remove
-
-```sh
-omarchy plugin disable sanjyay.hotspot-budget
-omarchy plugin remove sanjyay.hotspot-budget
-```
-
-Saved budgets and usage are retained. To erase a particular profile, use
-**Forget saved profile** before removal. To erase all stored data, disable the
-plugin first, then delete only its `hotspot-budget` directory under the state
-location above. Do not delete state while a tracker is running.
-
 ## Troubleshooting
 
 | Symptom | What to check |
@@ -196,12 +165,6 @@ See [architecture](ARCHITECTURE.md), [security design](docs/security.md), and th
 [verification record](docs/verification.md) for implementation details and known
 validation limits.
 
-## License and marketplace status
+## License
 
 [MIT](LICENSE), copyright 2026 sanjyay. Independent community project.
-
-This README documents installation, removal, and dependencies as requested by the
-marketplace's [submission guide](https://github.com/omacom/omarchy-plugin-marketplace/blob/main/SUBMISSION.md).
-The project has not been submitted, listed, or granted marketplace verification.
-Publication requires a public repository and the marketplace's validation and
-maintainer approval; README completeness alone does not establish acceptance.
